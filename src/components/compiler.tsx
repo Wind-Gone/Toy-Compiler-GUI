@@ -30,12 +30,12 @@ function compiler() {
   const [output, setOutput] = useState('');
   const [complierSwitch, setCompilerSwitch] = useState('lexer');
   const [collapsed, setCollapsed] = useState(false);
-  const [inputFileName, setInputFileName] = useState("");
+  const [inputFileName, setInputFileName] = useState('');
+  const [rootPath, setRootPath] = useState('当前文件夹');
+  const [files, setFiles] = useState([]);
+  const [filesData, setFilesData] = useState([]);
   const inputText = useRef<ReactAce>(null);
   const outputText = useRef<ReactAce>(null);
-  
-  let files;
-  let rootpath = '';
 
   useEffect(() => {
     let reader = new FileReader();
@@ -69,21 +69,56 @@ function compiler() {
       .then((res) => res.text())
       .then((data) => {
         // outputText.current!.editor.setValue(data);
-        setOutput(data)
+        setOutput(data);
       });
   };
-  const handleFile = (e:any) => {
+  const handleFile = (e: any) => {
     const content = e.target.result;
     setInput(content);
-    // You can set content in state and show it in render.
-  }
+  };
   const handleChangeFile = (file: any) => {
     console.log(file);
     setInputFileName(file.name);
     let fileData = new FileReader();
     fileData.onloadend = handleFile;
     fileData.readAsText(file);
-  }
+  };
+
+  const handelFiles = (e: any) => {
+    //清空
+    setFiles([]);
+    setFilesData([]);
+
+    const files = e!.target!.files; //文件列表
+    setRootPath(files[0].webkitRelativePath.split('/')[0]);
+    let fileNames = [];
+    for (let i = 0; i < files.length; i++) {
+      let fr = new FileReader();
+      const file = files[i];
+      fileNames.push(file.name);
+      fr.readAsText(file);
+      fr.onload = () => {
+        let t = filesData;
+        t.push(fr.result);
+        setFilesData(t);
+      };
+    }
+    console.log('fileNames', fileNames);
+    let newfiles = fileNames.map((fileName, index) => {
+      return (
+        <Menu.Item
+          onClick={() => {
+            console.log('222', filesData);
+            setInput(filesData[index]);
+            setInputFileName(fileName);
+          }}
+        >
+          {fileName}
+        </Menu.Item>
+      );
+    });
+    setFiles(newfiles);
+  };
 
   return (
     <div>
@@ -95,8 +130,26 @@ function compiler() {
         <SubMenu title="文件">
           <Menu.Item>
             <label>
-              打开文件
-              <input type="file" style={{ display: 'none' }} onChange={e => handleChangeFile(e!.target!.files![0])}/>
+              导入文件
+              <input
+                type="file"
+                style={{ display: 'none' }}
+                onChange={(e) => handleChangeFile(e!.target!.files![0])}
+                accept="text/plain"
+              />
+            </label>
+          </Menu.Item>
+          <Menu.Item>
+            <label>
+              打开文件夹
+              <input
+                type="file"
+                multiple
+                style={{ display: 'none' }}
+                webkitdirectory="true"
+                onInput={(e) => handelFiles(e)}
+                accept="text/plain"
+              />
             </label>
           </Menu.Item>
         </SubMenu>
@@ -133,7 +186,7 @@ function compiler() {
           </div>
 
           <Menu theme="dark" defaultSelectedKeys={['sub1']} mode="inline">
-            <SubMenu key="sub1" icon={<FolderOpenOutlined />} title="User">
+            <SubMenu key="sub1" icon={<FolderOpenOutlined />} title={rootPath}>
               {files}
             </SubMenu>
           </Menu>
@@ -149,7 +202,7 @@ function compiler() {
                 marginBottom: '5px',
               }}
             >
-              {inputFileName+"  "}[输入文本]
+              {inputFileName + '  '}[输入文本]
             </div>
             <div>
               <AceEditor
@@ -175,7 +228,11 @@ function compiler() {
               >
                 [显示结果]
               </div>
-              <TextArea readOnly={true} style={{ height: '200px' }} value={output} />
+              <TextArea
+                readOnly={true}
+                style={{ height: '200px' }}
+                value={output}
+              />
             </div>
           </Content>
           <Footer style={{ textAlign: 'center' }}>
