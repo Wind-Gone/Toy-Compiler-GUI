@@ -16,8 +16,15 @@ import {
 import { BrowserWindow } from 'electron';
 import AceEditor from 'react-ace';
 import 'ace-builds/src-noconflict/mode-java';
+import 'ace-builds/src-noconflict/mode-python';
 import 'ace-builds/src-noconflict/theme-monokai';
 import 'ace-builds/src-noconflict/theme-github';
+import 'ace-builds/src-noconflict/theme-chrome';
+import 'ace-builds/src-noconflict/theme-eclipse';
+import 'ace-builds/src-noconflict/theme-chaos';
+import 'ace-builds/src-noconflict/theme-ambiance';
+import 'ace-builds/src-noconflict/theme-merbivore';
+import 'ace-builds/src-noconflict/theme-terminal';
 import ReactAce, { IAceEditorProps } from 'react-ace/lib/ace';
 
 const { Header, Content, Footer, Sider } = Layout;
@@ -36,6 +43,7 @@ function compiler() {
   const [filesData, setFilesData] = useState([]);
   const inputText = useRef<ReactAce>(null);
   const outputText = useRef<ReactAce>(null);
+  const [codetheme, setcodetheme] = useState('eclipse');
 
   useEffect(() => {
     let reader = new FileReader();
@@ -119,6 +127,10 @@ function compiler() {
     });
     setFiles(newfiles);
   };
+  const ChangeCodeTheme = function (event) {
+    console.log('huhu', event.item.props.children[1]);
+    setcodetheme(event.item.props.children[1]);
+  };
 
   return (
     <div>
@@ -158,6 +170,28 @@ function compiler() {
         </SubMenu>
         <SubMenu title="操作">
           <Menu.Item>清空输入</Menu.Item>
+        </SubMenu>
+        <SubMenu title="格式">
+          <SubMenu title="代码风格">
+            <Menu.Item title="github" onClick={ChangeCodeTheme}>
+              github
+            </Menu.Item>
+            <Menu.Item title="monokai" onClick={ChangeCodeTheme}>
+              monokai
+            </Menu.Item>
+            <Menu.Item title="chrome" onClick={ChangeCodeTheme}>
+              chrome
+            </Menu.Item>
+            <Menu.Item title="chaos" onClick={ChangeCodeTheme}>
+              chaos
+            </Menu.Item>
+            <Menu.Item title="merbivore" onClick={ChangeCodeTheme}>
+              merbivore
+            </Menu.Item>
+            <Menu.Item title="terminal" onClick={ChangeCodeTheme}>
+              terminal
+            </Menu.Item>
+          </SubMenu>
         </SubMenu>
         <SubMenu title="编译">
           <Menu.Item onClick={runCompiler}>词法分析</Menu.Item>
@@ -202,7 +236,7 @@ function compiler() {
                 marginBottom: '5px',
               }}
             >
-              {inputFileName + '  '}[输入文本]
+              {inputFileName + '  '}[输入编译的程序]
             </div>
             <div>
               <AceEditor
@@ -212,9 +246,9 @@ function compiler() {
                 // placeholder="请输入程序......  🤓"
                 width="100%"
                 value={input}
-                height="400px"
+                height="540px"
                 mode="java"
-                theme="github"
+                theme={codetheme}
                 editorProps={{ $blockScrolling: true }}
               />
               <div
