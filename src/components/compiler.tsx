@@ -426,6 +426,7 @@ function compiler() {
             <Table
               columns={columns}
               dataSource={tableData}
+              pagination={false}
               scroll={{ x: 1500, y: 300 }}
             />
           </Modal>
