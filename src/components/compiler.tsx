@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Button, Layout, Menu, Breadcrumb, Divider, Input } from 'antd';
+import { Button, Layout, Menu, Breadcrumb, Divider, Input, Table } from 'antd';
 import { Select } from 'antd';
 import {
   PlayCircleOutlined,
@@ -26,8 +26,9 @@ import 'ace-builds/src-noconflict/theme-ambiance';
 import 'ace-builds/src-noconflict/theme-merbivore';
 import 'ace-builds/src-noconflict/theme-terminal';
 import ReactAce, { IAceEditorProps } from 'react-ace/lib/ace';
-import FirstSet from './FirstSet'
-import FollowSet from './FollowSet'
+import FirstSet from './FirstSet';
+import FollowSet from './FollowSet';
+import { table } from 'console';
 
 const { Header, Content, Footer, Sider } = Layout;
 const { SubMenu } = Menu;
@@ -46,12 +47,14 @@ function compiler() {
   const inputText = useRef<ReactAce>(null);
   const outputText = useRef<ReactAce>(null);
   const [codetheme, setcodetheme] = useState('eclipse');
+  const [columns, setcolumns] = useState([]);
+  const [tableData, settableData] = useState([]);
 
   /* 对话框 */
-  const [firstSetVisible,setFirstSetVisible] = useState(false);
-  const [followSetVisible,setFollowSetVisible] = useState(false);
-
-
+  const [firstSetVisible, setFirstSetVisible] = useState(false);
+  const [followSetVisible, setFollowSetVisible] = useState(false);
+  const [tableVisible, settableVisible] = useState(false);
+  var finalTableForPrint: string[][] = [];
   useEffect(() => {
     let reader = new FileReader();
   }, []);
@@ -103,7 +106,6 @@ function compiler() {
     //清空
     setFiles([]);
     setFilesData([]);
-
     const files = e!.target!.files; //文件列表
     setRootPath(files[0].webkitRelativePath.split('/')[0]);
     let fileNames = [];
@@ -140,23 +142,108 @@ function compiler() {
   };
 
   /* first follow table 集 */
-  const handleOk = (label:string) => {
-    if(label == "FirstSet"){
+  const handleOk = (label: string) => {
+    if (label == 'FirstSet') {
       setFirstSetVisible(false);
-    }else if(label == "FollowSet"){
+    } else if (label == 'FollowSet') {
       setFollowSetVisible(false);
     }
-  }
+  };
 
-  const handleCancel = (label:string) => {
-    if(label == "FirstSet"){
+  const handleCancel = (label: string) => {
+    if (label == 'FirstSet') {
       setFirstSetVisible(false);
-    }else if(label == "FollowSet"){
+    } else if (label == 'FollowSet') {
       setFollowSetVisible(false);
     }
-  }
- 
+  };
+  const prepareData = function () {
+    const temp = [];
+    var tabletitle = finalTableForPrint[0];
+    for (var i = 0; i < 4; i++) {
+      let item = {
+        title: tabletitle[i].trim(),
+        width: 100,
+        dataIndex: tabletitle[i].trim(),
+        key: tabletitle[i].trim(),
+        fixed: 'left',
+      };
+      temp.push(item);
+    }
+    for (var i = 4; i < tabletitle.length; i++) {
+      let item = {
+        title: tabletitle[i].trim(),
+        width: 100,
+        dataIndex: tabletitle[i].trim(),
+        key: tabletitle[i].trim(),
+      };
+      temp.push(item);
+    }
+    setcolumns(temp);
+    console.log('columns', columns);
+    let temp2 = [];
+    settableVisible(true);
+    for (var i = 1; i < finalTableForPrint.length; i++) {
+      temp2.push({
+        key: i,
+        'VT/T': finalTableForPrint[i][0],
+        if: finalTableForPrint[i][1],
+        then: finalTableForPrint[i][2],
+        else: finalTableForPrint[i][3],
+        while: finalTableForPrint[i][4],
+        identifiers: finalTableForPrint[i][5],
+        '+': finalTableForPrint[i][6],
+        '-': finalTableForPrint[i][7],
+        '/': finalTableForPrint[i][8],
+        '*': finalTableForPrint[i][9],
+        '=': finalTableForPrint[i][10],
+        '==': finalTableForPrint[i][11],
+        '<': finalTableForPrint[i][12],
+        '<=': finalTableForPrint[i][13],
+        '>': finalTableForPrint[i][14],
+        '>=': finalTableForPrint[i][15],
+        '(': finalTableForPrint[i][16],
+        ')': finalTableForPrint[i][17],
+        '{': finalTableForPrint[i][18],
+        '}': finalTableForPrint[i][19],
+        ';': finalTableForPrint[i][20],
+        num: finalTableForPrint[i][21],
+      });
+    }
+    console.log('this', temp2);
+    settableData(temp2);
+  };
+  const getFinalTable = function () {
+    var tableArray = [];
+    let url = 'http://localhost:8080/finalTable';
+    fetch(url)
+      .then((res) => res.text())
+      .then((res) => {
+        console.log('hu', res);
+        tableArray = res.split('[');
+        console.log('hu', tableArray);
+        console.log(tableArray.length);
+        console.log(tableArray[3].length);
+        for (var i = 2; i < tableArray.length; i++) {
+          var tempArray = tableArray[i].split(',');
+          finalTableForPrint[i - 2] = [];
+          for (var j = 0; j < tempArray.length - 1; j++) {
+            if (tempArray[j] == ' ') tempArray[j] = 'null';
+            if (tempArray[j].endsWith(']')) {
+              console.log(']]]]]]]]]]]]]]]');
+              tempArray[j] = tempArray[j].substr(0, tempArray[j].length - 1);
+            }
 
+            if (tempArray[j].toString() == ' num]') {
+              tempArray[j] = 'num';
+            }
+            console.log(tempArray[j], ' ');
+            finalTableForPrint[i - 2][j] = tempArray[j];
+          }
+        }
+        prepareData();
+      });
+  };
   return (
     <div>
       <Menu
@@ -224,11 +311,23 @@ function compiler() {
           <Menu.Item>语义分析</Menu.Item>
         </SubMenu>
         <SubMenu title="中间过程">
-          <Menu.Item onClick={()=>{setFirstSetVisible(true)}}>First集</Menu.Item>
-          <Menu.Item onClick={()=>{setFollowSetVisible(true)}}>Follow集</Menu.Item>
+          <Menu.Item
+            onClick={() => {
+              setFirstSetVisible(true);
+            }}
+          >
+            First集
+          </Menu.Item>
+          <Menu.Item
+            onClick={() => {
+              setFollowSetVisible(true);
+            }}
+          >
+            Follow集
+          </Menu.Item>
+          <Menu.Item onClick={getFinalTable}>解析表</Menu.Item>
         </SubMenu>
       </Menu>
-
       <Layout style={{ minHeight: '100vh' }}>
         <Sider
           collapsible
@@ -275,7 +374,7 @@ function compiler() {
                 // placeholder="请输入程序......  🤓"
                 width="100%"
                 value={input}
-                height="350px"
+                height="150px"
                 mode="java"
                 theme={codetheme}
                 editorProps={{ $blockScrolling: true }}
@@ -301,14 +400,26 @@ function compiler() {
           <Footer style={{ textAlign: 'center' }}>
             Compiler ©2021 Created by hzr czh wyj
           </Footer>
+          <Table
+            columns={columns}
+            dataSource={tableData}
+            scroll={{ x: 1500, y: 300 }}
+          />
+          ,
+          <Divider />
         </Layout>
       </Layout>
-
-      <FirstSet visible={firstSetVisible} handleOk={handleOk} handleCancel={handleCancel} />
-      <FollowSet visible={followSetVisible} handleOk={handleOk} handleCancel={handleCancel} />
-
-
-      {/* header */}
+      <FirstSet
+        visible={firstSetVisible}
+        handleOk={handleOk}
+        handleCancel={handleCancel}
+      />
+      <FollowSet
+        visible={followSetVisible}
+        handleOk={handleOk}
+        handleCancel={handleCancel}
+      />
+      ,{/* header */}
       {/* <div>
         <div style={{ display: 'flex', justifyContent: 'flex-start' ,paddingBottom:20}}>
           <Button
@@ -348,7 +459,6 @@ function compiler() {
           </Button>
         </div>
       </div> */}
-
       {/* 文本框 */}
       {/* <div>
         <div style={{ display: 'flex', justifyContent: 'space-around' }}>
