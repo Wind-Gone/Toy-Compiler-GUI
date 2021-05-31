@@ -169,17 +169,7 @@ function compiler() {
   const prepareData = function () {
     const temp = [];
     var tabletitle = finalTableForPrint[0];
-    for (var i = 0; i < 4; i++) {
-      let item = {
-        title: tabletitle[i].trim(),
-        width: 100,
-        dataIndex: tabletitle[i].trim(),
-        key: tabletitle[i].trim(),
-        fixed: 'left',
-      };
-      temp.push(item);
-    }
-    for (var i = 4; i < tabletitle.length; i++) {
+    for (var i = 0; i < tabletitle.length; i++) {
       let item = {
         title: tabletitle[i].trim(),
         width: 100,
@@ -237,9 +227,8 @@ function compiler() {
           var tempArray = tableArray[i].split(',');
           finalTableForPrint[i - 2] = [];
           for (var j = 0; j < tempArray.length - 1; j++) {
-            if (tempArray[j] == ' ') tempArray[j] = 'null';
+            // if (tempArray[j] == ' ') tempArray[j] = 'null';
             if (tempArray[j].endsWith(']')) {
-              console.log(']]]]]]]]]]]]]]]');
               tempArray[j] = tempArray[j].substr(0, tempArray[j].length - 1);
             }
 
@@ -390,7 +379,7 @@ function compiler() {
                 // placeholder="请输入程序......  🤓"
                 width="100%"
                 value={input}
-                height="150px"
+                height="450px"
                 mode="java"
                 theme={codetheme}
                 editorProps={{ $blockScrolling: true }}
@@ -427,7 +416,7 @@ function compiler() {
               columns={columns}
               dataSource={tableData}
               pagination={false}
-              scroll={{ x: 1500, y: 300 }}
+              scroll={{ x: 1800, y: 500 }}
             />
           </Modal>
         </Layout>
