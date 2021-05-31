@@ -7,7 +7,7 @@ interface IProps {
   handleCancel: (label: string) => void;
 }
 
-const FirstSet: FC<IProps> = ({
+const FollowSet: FC<IProps> = ({
   visible,
   handleOk,
   handleCancel,
@@ -15,7 +15,7 @@ const FirstSet: FC<IProps> = ({
   const [data, setData] = useState([]);
 
   useEffect(() => {
-    let url = 'http://localhost:8080/FirstSet';
+    let url = 'http://localhost:8080/FollowSet';
     fetch(url)
       .then((res) => res.json())
       .then((res) => {
@@ -26,10 +26,10 @@ const FirstSet: FC<IProps> = ({
   return (
     <div>
       <Modal
-        title="First集"
+        title="Follow集"
         visible={visible}
-        onOk={() => handleOk('FirstSet')}
-        onCancel={() => handleCancel('FirstSet')}
+        onOk={() => handleOk('FollowSet')}
+        onCancel={() => handleCancel('FollowSet')}
       >
         <List
           bordered
@@ -49,4 +49,4 @@ const FirstSet: FC<IProps> = ({
   );
 };
 
-export default FirstSet;
+export default FollowSet;

@@ -16,9 +16,18 @@ import {
 import { BrowserWindow } from 'electron';
 import AceEditor from 'react-ace';
 import 'ace-builds/src-noconflict/mode-java';
+import 'ace-builds/src-noconflict/mode-python';
 import 'ace-builds/src-noconflict/theme-monokai';
 import 'ace-builds/src-noconflict/theme-github';
+import 'ace-builds/src-noconflict/theme-chrome';
+import 'ace-builds/src-noconflict/theme-eclipse';
+import 'ace-builds/src-noconflict/theme-chaos';
+import 'ace-builds/src-noconflict/theme-ambiance';
+import 'ace-builds/src-noconflict/theme-merbivore';
+import 'ace-builds/src-noconflict/theme-terminal';
 import ReactAce, { IAceEditorProps } from 'react-ace/lib/ace';
+import FirstSet from './FirstSet'
+import FollowSet from './FollowSet'
 
 const { Header, Content, Footer, Sider } = Layout;
 const { SubMenu } = Menu;
@@ -36,6 +45,7 @@ function compiler() {
   const [filesData, setFilesData] = useState([]);
   const inputText = useRef<ReactAce>(null);
   const outputText = useRef<ReactAce>(null);
+  const [codetheme, setcodetheme] = useState('eclipse');
 
   /* 对话框 */
   const [firstSetVisible,setFirstSetVisible] = useState(false);
@@ -124,9 +134,28 @@ function compiler() {
     });
     setFiles(newfiles);
   };
+  const ChangeCodeTheme = function (event) {
+    console.log('huhu', event.item.props.children[1]);
+    setcodetheme(event.item.props.children[1]);
+  };
 
-  /* */
+  /* first follow table 集 */
+  const handleOk = (label:string) => {
+    if(label == "FirstSet"){
+      setFirstSetVisible(false);
+    }else if(label == "FollowSet"){
+      setFollowSetVisible(false);
+    }
+  }
 
+  const handleCancel = (label:string) => {
+    if(label == "FirstSet"){
+      setFirstSetVisible(false);
+    }else if(label == "FollowSet"){
+      setFollowSetVisible(false);
+    }
+  }
+ 
 
   return (
     <div>
@@ -167,10 +196,36 @@ function compiler() {
         <SubMenu title="操作">
           <Menu.Item>清空输入</Menu.Item>
         </SubMenu>
+        <SubMenu title="格式">
+          <SubMenu title="代码风格">
+            <Menu.Item title="github" onClick={ChangeCodeTheme}>
+              github
+            </Menu.Item>
+            <Menu.Item title="monokai" onClick={ChangeCodeTheme}>
+              monokai
+            </Menu.Item>
+            <Menu.Item title="chrome" onClick={ChangeCodeTheme}>
+              chrome
+            </Menu.Item>
+            <Menu.Item title="chaos" onClick={ChangeCodeTheme}>
+              chaos
+            </Menu.Item>
+            <Menu.Item title="merbivore" onClick={ChangeCodeTheme}>
+              merbivore
+            </Menu.Item>
+            <Menu.Item title="terminal" onClick={ChangeCodeTheme}>
+              terminal
+            </Menu.Item>
+          </SubMenu>
+        </SubMenu>
         <SubMenu title="编译">
           <Menu.Item onClick={runCompiler}>词法分析</Menu.Item>
           <Menu.Item>语法分析</Menu.Item>
           <Menu.Item>语义分析</Menu.Item>
+        </SubMenu>
+        <SubMenu title="中间过程">
+          <Menu.Item onClick={()=>{setFirstSetVisible(true)}}>First集</Menu.Item>
+          <Menu.Item onClick={()=>{setFollowSetVisible(true)}}>Follow集</Menu.Item>
         </SubMenu>
       </Menu>
 
@@ -210,7 +265,7 @@ function compiler() {
                 marginBottom: '5px',
               }}
             >
-              {inputFileName + '  '}[输入文本]
+              {inputFileName + '  '}[输入编译的程序]
             </div>
             <div>
               <AceEditor
@@ -222,7 +277,7 @@ function compiler() {
                 value={input}
                 height="350px"
                 mode="java"
-                theme="github"
+                theme={codetheme}
                 editorProps={{ $blockScrolling: true }}
               />
               <div
@@ -248,6 +303,10 @@ function compiler() {
           </Footer>
         </Layout>
       </Layout>
+
+      <FirstSet visible={firstSetVisible} handleOk={handleOk} handleCancel={handleCancel} />
+      <FollowSet visible={followSetVisible} handleOk={handleOk} handleCancel={handleCancel} />
+
 
       {/* header */}
       {/* <div>
