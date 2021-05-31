@@ -37,6 +37,11 @@ function compiler() {
   const inputText = useRef<ReactAce>(null);
   const outputText = useRef<ReactAce>(null);
 
+  /* 对话框 */
+  const [firstSetVisible,setFirstSetVisible] = useState(false);
+  const [followSetVisible,setFollowSetVisible] = useState(false);
+
+
   useEffect(() => {
     let reader = new FileReader();
   }, []);
@@ -119,6 +124,9 @@ function compiler() {
     });
     setFiles(newfiles);
   };
+
+  /* */
+
 
   return (
     <div>
@@ -212,7 +220,7 @@ function compiler() {
                 // placeholder="请输入程序......  🤓"
                 width="100%"
                 value={input}
-                height="400px"
+                height="350px"
                 mode="java"
                 theme="github"
                 editorProps={{ $blockScrolling: true }}
