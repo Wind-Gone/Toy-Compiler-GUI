@@ -1,5 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Button, Layout, Menu, Breadcrumb, Divider, Input, Table } from 'antd';
+import {
+  Button,
+  Layout,
+  Menu,
+  Breadcrumb,
+  Divider,
+  Input,
+  Table,
+  Modal,
+} from 'antd';
 import { Select } from 'antd';
 import {
   PlayCircleOutlined,
@@ -325,7 +334,14 @@ function compiler() {
           >
             Follow集
           </Menu.Item>
-          <Menu.Item onClick={getFinalTable}>解析表</Menu.Item>
+          <Menu.Item
+            onClick={() => {
+              getFinalTable();
+              settableVisible(true);
+            }}
+          >
+            解析表
+          </Menu.Item>
         </SubMenu>
       </Menu>
       <Layout style={{ minHeight: '100vh' }}>
@@ -400,13 +416,19 @@ function compiler() {
           <Footer style={{ textAlign: 'center' }}>
             Compiler ©2021 Created by hzr czh wyj
           </Footer>
-          <Table
-            columns={columns}
-            dataSource={tableData}
-            scroll={{ x: 1500, y: 300 }}
-          />
-          ,
-          <Divider />
+          <Modal
+            width="70%"
+            title="ll语法分析表"
+            visible={tableVisible}
+            onOk={() => settableVisible(false)}
+            onCancel={() => settableVisible(false)}
+          >
+            <Table
+              columns={columns}
+              dataSource={tableData}
+              scroll={{ x: 1500, y: 300 }}
+            />
+          </Modal>
         </Layout>
       </Layout>
       <FirstSet
