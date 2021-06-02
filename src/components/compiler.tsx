@@ -97,7 +97,8 @@ function compiler() {
       .then((data) => {
         // outputText.current!.editor.setValue(data);
         setOutput(data);
-      });
+      })
+      .catch(e=>console.log(e));
   };
   const handleFile = (e: any) => {
     const content = e.target.result;
@@ -251,7 +252,8 @@ function compiler() {
           }
         }
         prepareData();
-      });
+      })
+      .catch(e=>console.log(e));
   };
   return (
     <div>
@@ -427,7 +429,7 @@ function compiler() {
               columns={columns}
               dataSource={tableData}
               pagination={false}
-              scroll={{ x: 1500, y: 300 }}
+              scroll={{ x: 1800, y: 300 }}
             />
           </Modal>
         </Layout>

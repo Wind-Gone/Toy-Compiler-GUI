@@ -20,7 +20,8 @@ const FollowSet: FC<IProps> = ({
       .then((res) => res.json())
       .then((res) => {
         setData(res);
-      });
+      })
+      .catch(e=>console.log(e));
   }, []);
 
   return (
