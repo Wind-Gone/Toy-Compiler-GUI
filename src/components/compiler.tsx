@@ -100,6 +100,23 @@ function compiler() {
       })
       .catch(e=>console.log(e));
   };
+
+  const getGrammerResult = function () {
+    let url = 'http://localhost:8080/grammer';
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        source: input,
+      }),
+    })
+      .then((res) => res.text())
+      .then((data) => {
+        setOutput(data);
+      });
+  };
   const handleFile = (e: any) => {
     const content = e.target.result;
     setInput(content);
@@ -167,20 +184,11 @@ function compiler() {
       setFollowSetVisible(false);
     }
   };
+
   const prepareData = function () {
     const temp = [];
     var tabletitle = finalTableForPrint[0];
-    for (var i = 0; i < 4; i++) {
-      let item = {
-        title: tabletitle[i].trim(),
-        width: 100,
-        dataIndex: tabletitle[i].trim(),
-        key: tabletitle[i].trim(),
-        fixed: 'left',
-      };
-      temp.push(item);
-    }
-    for (var i = 4; i < tabletitle.length; i++) {
+    for (var i = 0; i < tabletitle.length; i++) {
       let item = {
         title: tabletitle[i].trim(),
         width: 100,
@@ -223,6 +231,7 @@ function compiler() {
     console.log('this', temp2);
     settableData(temp2);
   };
+
   const getFinalTable = function () {
     var tableArray = [];
     let url = 'http://localhost:8080/finalTable';
@@ -238,12 +247,10 @@ function compiler() {
           var tempArray = tableArray[i].split(',');
           finalTableForPrint[i - 2] = [];
           for (var j = 0; j < tempArray.length - 1; j++) {
-            if (tempArray[j] == ' ') tempArray[j] = 'null';
+            // if (tempArray[j] == ' ') tempArray[j] = 'null';
             if (tempArray[j].endsWith(']')) {
-              console.log(']]]]]]]]]]]]]]]');
               tempArray[j] = tempArray[j].substr(0, tempArray[j].length - 1);
             }
-
             if (tempArray[j].toString() == ' num]') {
               tempArray[j] = 'num';
             }
@@ -318,7 +325,7 @@ function compiler() {
         </SubMenu>
         <SubMenu title="编译">
           <Menu.Item onClick={runCompiler}>词法分析</Menu.Item>
-          <Menu.Item>语法分析</Menu.Item>
+          <Menu.Item onClick={getGrammerResult}>语法分析</Menu.Item>
           <Menu.Item>语义分析</Menu.Item>
         </SubMenu>
         <SubMenu title="中间过程">
@@ -392,7 +399,7 @@ function compiler() {
                 // placeholder="请输入程序......  🤓"
                 width="100%"
                 value={input}
-                height="150px"
+                height="450px"
                 mode="java"
                 theme={codetheme}
                 editorProps={{ $blockScrolling: true }}
@@ -429,7 +436,7 @@ function compiler() {
               columns={columns}
               dataSource={tableData}
               pagination={false}
-              scroll={{ x: 1800, y: 300 }}
+              scroll={{ x: 1800, y: 500 }}
             />
           </Modal>
         </Layout>
