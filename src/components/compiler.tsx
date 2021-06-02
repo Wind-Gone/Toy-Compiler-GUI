@@ -99,6 +99,23 @@ function compiler() {
         setOutput(data);
       });
   };
+
+  const getGrammerResult = function () {
+    let url = 'http://localhost:8080/grammer';
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        source: input,
+      }),
+    })
+      .then((res) => res.text())
+      .then((data) => {
+        setOutput(data);
+      });
+  };
   const handleFile = (e: any) => {
     const content = e.target.result;
     setInput(content);
@@ -166,6 +183,7 @@ function compiler() {
       setFollowSetVisible(false);
     }
   };
+
   const prepareData = function () {
     const temp = [];
     var tabletitle = finalTableForPrint[0];
@@ -212,6 +230,7 @@ function compiler() {
     console.log('this', temp2);
     settableData(temp2);
   };
+
   const getFinalTable = function () {
     var tableArray = [];
     let url = 'http://localhost:8080/finalTable';
@@ -231,7 +250,6 @@ function compiler() {
             if (tempArray[j].endsWith(']')) {
               tempArray[j] = tempArray[j].substr(0, tempArray[j].length - 1);
             }
-
             if (tempArray[j].toString() == ' num]') {
               tempArray[j] = 'num';
             }
@@ -305,7 +323,7 @@ function compiler() {
         </SubMenu>
         <SubMenu title="编译">
           <Menu.Item onClick={runCompiler}>词法分析</Menu.Item>
-          <Menu.Item>语法分析</Menu.Item>
+          <Menu.Item onClick={getGrammerResult}>语法分析</Menu.Item>
           <Menu.Item>语义分析</Menu.Item>
         </SubMenu>
         <SubMenu title="中间过程">
