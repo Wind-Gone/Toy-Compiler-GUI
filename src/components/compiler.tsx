@@ -65,10 +65,25 @@ function compiler() {
   const [firstSetVisible, setFirstSetVisible] = useState(false);
   const [followSetVisible, setFollowSetVisible] = useState(false);
   const [tableVisible, settableVisible] = useState(false);
+  const [treeVisible, setTreeVisible] = useState(false);
   var finalTableForPrint: string[][] = [];
 
   /**树形图 */
-  const [treeData,setTreeData] = useState();
+  const [treeData, setTreeData] = useState();
+  const [graph, setGraph] = useState();
+  const [treeButtonDisabled, setTreeButtonDisabled] = useState(true);
+
+
+  function scrollToBottom() {
+    
+      window.scrollTo({ 
+        top: document.documentElement.scrollHeight, 
+        behavior: 'auto'
+        /* you can also use 'auto' behaviour 
+           in place of 'smooth' */
+      }); 
+
+  }
 
   useEffect(() => {
     let reader = new FileReader();
@@ -138,10 +153,65 @@ function compiler() {
     })
       .then((res) => res.json())
       .then((data) => {
-        console.log('grammertree',data);
+        console.log('grammertree', data);
         setTreeData(data);
       })
       .catch((e) => console.log(e));
+
+    const container = document.getElementById('container');
+    const width = container.scrollWidth;
+    const height = container.scrollHeight || 500;
+    let graph1 = new G6.TreeGraph({
+      container: 'container',
+      width,
+      height,
+      linkCenter: true,
+      modes: {
+        default: [
+          {
+            type: 'collapse-expand',
+            onChange: function onChange(item, collapsed) {
+              const data = item.getModel();
+              data.collapsed = collapsed;
+              return true;
+            },
+          },
+          'drag-canvas',
+          'zoom-canvas',
+        ],
+      },
+      defaultNode: {
+        size: 26,
+        anchorPoints: [
+          [0, 0.5],
+          [1, 0.5],
+        ],
+      },
+      defaultEdge: {
+        type: 'cubic-vertical',
+      },
+      layout: {
+        type: 'compactBox',
+        direction: 'TB',
+        getId: function getId(d) {
+          return d.id;
+        },
+        getHeight: function getHeight() {
+          return 16;
+        },
+        getWidth: function getWidth() {
+          return 16;
+        },
+        getVGap: function getVGap() {
+          return 30;
+        },
+        getHGap: function getHGap() {
+          return 60;
+        },
+      },
+    });
+    setGraph(graph1);
+    setTreeButtonDisabled(false);
   };
   const handleFile = (e: any) => {
     const content = e.target.result;
@@ -289,278 +359,279 @@ function compiler() {
       .catch((e) => console.log(e));
   };
 
-
-
   return (
-    <div>
-      <Tree data={treeData} />
-      <Menu
-        triggerSubMenuAction="click"
-        style={{ background: 'f8f8f8', fontSize: 13 }}
-        mode="horizontal"
-      >
-        <SubMenu title="文件">
-          <Menu.Item>
-            <label>
-              导入文件
-              <input
-                type="file"
-                style={{ display: 'none' }}
-                onChange={(e) => handleChangeFile(e!.target!.files![0])}
-                accept="text/plain"
-              />
-            </label>
-          </Menu.Item>
-          <Menu.Item>
-            <label>
-              打开文件夹
-              <input
-                type="file"
-                multiple
-                style={{ display: 'none' }}
-                webkitdirectory="true"
-                onInput={(e) => handelFiles(e)}
-                accept="text/plain"
-              />
-            </label>
-          </Menu.Item>
-        </SubMenu>
-        <SubMenu title="视图">
-          <Menu.Item>开发者视图</Menu.Item>
-        </SubMenu>
-        <SubMenu title="操作">
-          <Menu.Item>清空输入</Menu.Item>
-        </SubMenu>
-        <SubMenu title="格式">
-          <SubMenu title="代码风格">
-            <Menu.Item title="github" onClick={ChangeCodeTheme}>
-              github
+    <div >
+      <div >
+        <Menu
+          triggerSubMenuAction="click"
+          style={{ background: 'f8f8f8', fontSize: 13 }}
+          mode="horizontal"
+        >
+          <SubMenu title="文件">
+            <Menu.Item>
+              <label>
+                导入文件
+                <input
+                  type="file"
+                  style={{ display: 'none' }}
+                  onChange={(e) => handleChangeFile(e!.target!.files![0])}
+                  accept="text/plain"
+                />
+              </label>
             </Menu.Item>
-            <Menu.Item title="monokai" onClick={ChangeCodeTheme}>
-              monokai
-            </Menu.Item>
-            <Menu.Item title="chrome" onClick={ChangeCodeTheme}>
-              chrome
-            </Menu.Item>
-            <Menu.Item title="chaos" onClick={ChangeCodeTheme}>
-              chaos
-            </Menu.Item>
-            <Menu.Item title="merbivore" onClick={ChangeCodeTheme}>
-              merbivore
-            </Menu.Item>
-            <Menu.Item title="terminal" onClick={ChangeCodeTheme}>
-              terminal
+            <Menu.Item>
+              <label>
+                打开文件夹
+                <input
+                  type="file"
+                  multiple
+                  style={{ display: 'none' }}
+                  webkitdirectory="true"
+                  onInput={(e) => handelFiles(e)}
+                  accept="text/plain"
+                />
+              </label>
             </Menu.Item>
           </SubMenu>
-        </SubMenu>
-        <SubMenu title="编译">
-          <Menu.Item onClick={runCompiler}>词法分析</Menu.Item>
-          <Menu.Item onClick={getGrammerResult}>语法分析</Menu.Item>
-          <Menu.Item>语义分析</Menu.Item>
-        </SubMenu>
-        <SubMenu title="中间过程">
-          <Menu.Item
-            onClick={() => {
-              setFirstSetVisible(true);
-            }}
-          >
-            First集
-          </Menu.Item>
-          <Menu.Item
-            onClick={() => {
-              setFollowSetVisible(true);
-            }}
-          >
-            Follow集
-          </Menu.Item>
-          <Menu.Item
-            onClick={() => {
-              getFinalTable();
-              settableVisible(true);
-            }}
-          >
-            解析表
-          </Menu.Item>
-        </SubMenu>
-      </Menu>
-      <Layout style={{ minHeight: '100vh' }}>
-        <Sider
-          collapsible
-          collapsed={collapsed}
-          onCollapse={(collapsed) => setCollapsed(collapsed)}
-        >
-          <div
-            className="logo"
-            style={{
-              fontSize: 15,
-              textAlign: 'center',
-              height: '32px',
-              margin: '16px',
-              background: 'rgba(255, 255, 255, 0.3)',
-            }}
-          >
-            文件管理器
-          </div>
-
-          <Menu theme="dark" defaultSelectedKeys={['sub1']} mode="inline">
-            <SubMenu key="sub1" icon={<FolderOpenOutlined />} title={rootPath}>
-              {files}
+          <SubMenu title="视图">
+            <Menu.Item>开发者视图</Menu.Item>
+          </SubMenu>
+          <SubMenu title="操作">
+            <Menu.Item>清空输入</Menu.Item>
+          </SubMenu>
+          <SubMenu title="格式">
+            <SubMenu title="代码风格">
+              <Menu.Item title="github" onClick={ChangeCodeTheme}>
+                github
+              </Menu.Item>
+              <Menu.Item title="monokai" onClick={ChangeCodeTheme}>
+                monokai
+              </Menu.Item>
+              <Menu.Item title="chrome" onClick={ChangeCodeTheme}>
+                chrome
+              </Menu.Item>
+              <Menu.Item title="chaos" onClick={ChangeCodeTheme}>
+                chaos
+              </Menu.Item>
+              <Menu.Item title="merbivore" onClick={ChangeCodeTheme}>
+                merbivore
+              </Menu.Item>
+              <Menu.Item title="terminal" onClick={ChangeCodeTheme}>
+                terminal
+              </Menu.Item>
             </SubMenu>
-          </Menu>
-        </Sider>
-        <Layout>
-          <Content style={{ margin: '0 16px' }}>
-            <div
-              style={{
-                color: '#444444',
-                height: '32px',
-                background: '#f8f8f8',
-                marginTop: '16px',
-                marginBottom: '5px',
+          </SubMenu>
+          <SubMenu title="编译">
+            <Menu.Item onClick={runCompiler}>词法分析</Menu.Item>
+            <Menu.Item onClick={getGrammerResult}>语法分析</Menu.Item>
+            <Menu.Item>语义分析</Menu.Item>
+          </SubMenu>
+          <SubMenu title="中间过程">
+            <Menu.Item
+              onClick={() => {
+                setFirstSetVisible(true);
               }}
             >
-              {inputFileName + '  '}[输入编译的程序]
+              First集
+            </Menu.Item>
+            <Menu.Item
+              onClick={() => {
+                setFollowSetVisible(true);
+              }}
+            >
+              Follow集
+            </Menu.Item>
+            <Menu.Item
+              onClick={() => {
+                getFinalTable();
+                settableVisible(true);
+              }}
+            >
+              解析表
+            </Menu.Item>
+          </SubMenu>
+        </Menu>
+        <Layout style={{ minHeight: '100vh' }}>
+          <Sider
+            collapsible
+            collapsed={collapsed}
+            onCollapse={(collapsed) => setCollapsed(collapsed)}
+          >
+            <div
+              className="logo"
+              style={{
+                fontSize: 15,
+                textAlign: 'center',
+                height: '32px',
+                margin: '16px',
+                background: 'rgba(255, 255, 255, 0.3)',
+              }}
+            >
+              文件管理器
             </div>
-            <div>
-              <AceEditor
-                ref={inputText}
-                onChange={inputOnChange}
-                fontSize="18px"
-                // placeholder="请输入程序......  🤓"
-                width="100%"
-                value={input}
-                height="450px"
-                mode="java"
-                theme={codetheme}
-                editorProps={{ $blockScrolling: true }}
-              />
-              <div
-                style={{
-                  color: '#444444',
-                  height: '32px',
-                  background: '#f8f8f8',
-                  marginTop: '16px',
-                  marginBottom: '5px',
-                }}
+
+            <Menu theme="dark" defaultSelectedKeys={['sub1']} mode="inline">
+              <SubMenu
+                key="sub1"
+                icon={<FolderOpenOutlined />}
+                title={rootPath}
               >
-                [显示结果]
+                {files}
+              </SubMenu>
+            </Menu>
+          </Sider>
+          <Layout>
+            <Content style={{ margin: '0 16px' }}>
+              <div>
+                <div>
+                  <div
+                    style={{
+                      color: '#444444',
+                      height: '32px',
+                      background: '#f8f8f8',
+                      marginTop: '16px',
+                      marginBottom: '5px',
+                    }}
+                  >
+                    {inputFileName + '  '}[输入编译的程序]
+                  </div>
+                  <div>
+                    <AceEditor
+                      ref={inputText}
+                      onChange={inputOnChange}
+                      fontSize="18px"
+                      // placeholder="请输入程序......  🤓"
+                      width="100%"
+                      value={input}
+                      height="300px"
+                      mode="java"
+                      theme={codetheme}
+                      editorProps={{ $blockScrolling: true }}
+                    />
+                    <div
+                      style={{
+                        color: '#444444',
+                        height: '32px',
+                        background: '#f8f8f8',
+                        marginTop: '16px',
+                        marginBottom: '5px',
+                      }}
+                    >
+                      [显示结果]
+                    </div>
+                    <TextArea
+                      readOnly={true}
+                      style={{ height: '200px' }}
+                      value={output}
+                    />
+                    <div
+                      style={{
+                        color: '#444444',
+                        height: '32px',
+                        background: '#f8f8f8',
+                        marginTop: '16px',
+                        marginBottom: '5px',
+                      }}
+                    >
+                      [语法树]{' '}
+                      <Button
+                        size="small"
+                        disabled={treeButtonDisabled}
+                        style={{ borderRadius: '20px' }}
+                        onClick={() => {
+                          graph.node(function (node) {
+                            let position = 'bottom';
+                            let rotate = 0;
+                            if (!node.children) {
+                              position = 'bottom';
+                              rotate = Math.PI / 2;
+                            }
+                            return {
+                              label: node.value,
+                              labelCfg: {
+                                position,
+                                offset: 5,
+                                style: {
+                                  rotate,
+                                  textAlign: 'start',
+                                },
+                              },
+                            };
+                          });
+                          graph.data(treeData);
+                          graph.render();
+                          graph.fitView();
+
+                          if (typeof window !== 'undefined') {
+                            window.onresize = () => {
+                              if (!graph || graph.get('destroyed')) return;
+                              if (
+                                !container ||
+                                !container.scrollWidth ||
+                                !container.scrollHeight
+                              )
+                                return;
+                              graph.changeSize(
+                                container.scrollWidth,
+                                container.scrollHeight
+                              );
+                            };
+                          }
+                          scrollToBottom();
+                        }}
+                      >
+                        显示
+                      </Button>{' '}
+                      <Button
+                        size="small"
+                        style={{ borderRadius: '20px' }}
+                        disabled={treeButtonDisabled}
+                        onClick={() => {
+                          graph.destroy();
+                          setTreeButtonDisabled(true);
+                          window.scrollTo(0, 0);
+                        }}
+                      >
+                        关闭
+                      </Button>
+                    </div>
+                    <div>
+                      <div id="container"></div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <TextArea
-                readOnly={true}
-                style={{ height: '200px' }}
-                value={output}
+            </Content>
+            <Footer style={{ textAlign: 'center' }}>
+              Compiler ©2021 Created by hzr czh wyj
+            </Footer>
+            <Modal
+              width="70%"
+              title="ll语法分析表"
+              visible={tableVisible}
+              onOk={() => settableVisible(false)}
+              onCancel={() => settableVisible(false)}
+            >
+              <Table
+                columns={columns}
+                dataSource={tableData}
+                pagination={false}
+                scroll={{ x: 1800, y: 500 }}
               />
-            </div>
-          </Content>
-          <Footer style={{ textAlign: 'center' }}>
-            Compiler ©2021 Created by hzr czh wyj
-          </Footer>
-          <Modal
-            width="70%"
-            title="ll语法分析表"
-            visible={tableVisible}
-            onOk={() => settableVisible(false)}
-            onCancel={() => settableVisible(false)}
-          >
-            <Table
-              columns={columns}
-              dataSource={tableData}
-              pagination={false}
-              scroll={{ x: 1800, y: 500 }}
-            />
-          </Modal>
+            </Modal>
+          </Layout>
         </Layout>
-      </Layout>
-      <FirstSet
-        visible={firstSetVisible}
-        handleOk={handleOk}
-        handleCancel={handleCancel}
-      />
-      <FollowSet
-        visible={followSetVisible}
-        handleOk={handleOk}
-        handleCancel={handleCancel}
-      />
-      ,{/* header */}
-      {/* <div>
-        <div style={{ display: 'flex', justifyContent: 'flex-start' ,paddingBottom:20}}>
-          <Button
-            icon={<PlayCircleOutlined />}
-            style={{ marginLeft: 20 }}
-            shape="round"
-            type="primary"
-            size="large"
-            onClick={runCompiler}
-          >
-            立即运行
-          </Button>
-          <Select
-            defaultValue="lexer"
-            showSearch
-            style={{ width: 200, marginLeft: 20 }}
-            placeholder="Select a lexer / parser"
-            optionFilterProp="children"
-            filterOption={(input, option: any) =>
-              option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
-            }
-            size="large"
-          >
-            <Option value="lexer">lexer</Option>
-            <Option value="parser" disabled>
-              Parser
-            </Option>
-          </Select>
-          <Button
-            icon={<ClearOutlined />}
-            style={{ marginLeft: 20 }}
-            shape="round"
-            size="large"
-            onClick={clearInput}
-          >
-            清空
-          </Button>
-        </div>
-      </div> */}
-      {/* 文本框 */}
-      {/* <div>
-        <div style={{ display: 'flex', justifyContent: 'space-around' }}>
-          <div className="Container">
-            <h1><EditTwoTone twoToneColor="#eb2f96" /> Input</h1>
-          </div>
-          <div className="Container">
-            <h1><BulbTwoTone twoToneColor="#eb2f96" /> Output</h1>
-          </div>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-around' }}>
-          <div className="Container">
-            <AceEditor
-              ref={inputText}
-              onChange={inputOnChange}
-              width="350px"
-              fontSize="18px"
-              placeholder="请输入程序......  🤓"
-              value={input}
-              height="300px"
-              mode="java"
-              theme="monokai"
-              editorProps={{ $blockScrolling: true }}
-            />
-          </div>
-          <div className="Container">
-            <AceEditor
-              ref={outputText}
-              readOnly={true}
-              width="350px"
-              fontSize="18px"
-              height="300px"
-              mode="java"
-              theme="monokai"
-              placeholder="输出结果......  😎"
-              editorProps={{ $blockScrolling: true }}
-            />
-          </div>
-        </div>
-      </div> */}
+        <FirstSet
+          visible={firstSetVisible}
+          handleOk={handleOk}
+          handleCancel={handleCancel}
+        />
+        <FollowSet
+          visible={followSetVisible}
+          handleOk={handleOk}
+          handleCancel={handleCancel}
+        />
+      </div>
     </div>
   );
 }

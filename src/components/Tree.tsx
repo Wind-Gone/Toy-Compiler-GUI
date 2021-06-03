@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect,useState } from 'react';
 import G6 from '@antv/g6';
 import { Button } from 'antd';
 
@@ -63,14 +63,14 @@ export interface Props {
 }
 
 function Tree({ input }: Props) {
-  let graph;
+  const [graph, setGraph] = useState()
   function initTree() {}
 
   useEffect(() => {
     const container = document.getElementById('container');
     const width = container.scrollWidth;
     const height = container.scrollHeight || 500;
-    graph = new G6.TreeGraph({
+    let graph1 = new G6.TreeGraph({
       container: 'container',
       width,
       height,
@@ -112,51 +112,58 @@ function Tree({ input }: Props) {
           return 16;
         },
         getVGap: function getVGap() {
-          return 80;
+          return 30;
         },
         getHGap: function getHGap() {
-          return 20;
+          return 60;
         },
       },
     });
-
+    setGraph(graph1)
     
   }, []);
+
+
   return (
     <div>
-      <button onClick={()=>{
-        graph.node(function (node) {
-          let position = 'right';
-          let rotate = 0;
-          if (!node.children) {
-            position = 'bottom';
-            rotate = Math.PI / 2;
-          }
-          return {
-            label: node.id,
-            labelCfg: {
-              position,
-              offset: 5,
-              style: {
-                rotate,
-                textAlign: 'start',
+      <button
+        onClick={() => {
+          graph.node(function (node) {
+            let position = 'bottom';
+            let rotate = 0;
+            if (!node.children) {
+              position = 'bottom';
+              rotate = Math.PI / 2;
+            }
+            return {
+              label: node.value,
+              labelCfg: {
+                position,
+                offset: 5,
+                style: {
+                  rotate,
+                  textAlign: 'start',
+                },
               },
-            },
-          };
-        });
-    
-        graph.data(data);
-        graph.render();
-        graph.fitView();
-    
-        if (typeof window !== 'undefined')
-          window.onresize = () => {
-            if (!graph || graph.get('destroyed')) return;
-            if (!container || !container.scrollWidth || !container.scrollHeight)
-              return;
-            graph.changeSize(container.scrollWidth, container.scrollHeight);
-          };
-      }}></button>
+            };
+          });
+          graph.data(input);
+          graph.render();
+          graph.fitView();
+
+          if (typeof window !== 'undefined')
+            window.onresize = () => {
+              if (!graph || graph.get('destroyed')) return;
+              if (
+                !container ||
+                !container.scrollWidth ||
+                !container.scrollHeight
+              )
+                return;
+              graph.changeSize(container.scrollWidth, container.scrollHeight);
+            };
+        }}
+      ></button>
       <div id="container"></div>
     </div>
   );
