@@ -37,7 +37,9 @@ import 'ace-builds/src-noconflict/theme-terminal';
 import ReactAce, { IAceEditorProps } from 'react-ace/lib/ace';
 import FirstSet from './FirstSet';
 import FollowSet from './FollowSet';
+import Tree from './Tree';
 import { table } from 'console';
+import G6 from '@antv/g6';
 
 const { Header, Content, Footer, Sider } = Layout;
 const { SubMenu } = Menu;
@@ -64,6 +66,10 @@ function compiler() {
   const [followSetVisible, setFollowSetVisible] = useState(false);
   const [tableVisible, settableVisible] = useState(false);
   var finalTableForPrint: string[][] = [];
+
+  /**树形图 */
+  const [treeData,setTreeData] = useState();
+
   useEffect(() => {
     let reader = new FileReader();
   }, []);
@@ -98,11 +104,12 @@ function compiler() {
         // outputText.current!.editor.setValue(data);
         setOutput(data);
       })
-      .catch(e=>console.log(e));
+      .catch((e) => console.log(e));
   };
 
   const getGrammerResult = function () {
     let url = 'http://localhost:8080/grammer';
+    /** 获取结果的值 */
     fetch(url, {
       method: 'POST',
       headers: {
@@ -115,7 +122,26 @@ function compiler() {
       .then((res) => res.text())
       .then((data) => {
         setOutput(data);
-      });
+        console.log(data);
+      })
+      .catch((e) => console.log(e));
+
+    /**获取语法树 */
+    fetch('http://localhost:8080/grammerTree', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        source: input,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log('grammertree',data);
+        setTreeData(data);
+      })
+      .catch((e) => console.log(e));
   };
   const handleFile = (e: any) => {
     const content = e.target.result;
@@ -260,10 +286,14 @@ function compiler() {
         }
         prepareData();
       })
-      .catch(e=>console.log(e));
+      .catch((e) => console.log(e));
   };
+
+
+
   return (
     <div>
+      <Tree data={treeData} />
       <Menu
         triggerSubMenuAction="click"
         style={{ background: 'f8f8f8', fontSize: 13 }}
@@ -440,7 +470,6 @@ function compiler() {
             />
           </Modal>
         </Layout>
-        
       </Layout>
       <FirstSet
         visible={firstSetVisible}
