@@ -66,6 +66,7 @@ function compiler() {
   const [followSetVisible, setFollowSetVisible] = useState(false);
   const [tableVisible, settableVisible] = useState(false);
   const [treeVisible, setTreeVisible] = useState(false);
+  const [codeVisible, setcodeVisible] = useState(false)
   var finalTableForPrint: string[][] = [];
 
   /**树形图 */
@@ -73,16 +74,13 @@ function compiler() {
   const [graph, setGraph] = useState();
   const [treeButtonDisabled, setTreeButtonDisabled] = useState(true);
 
-
   function scrollToBottom() {
-    
-      window.scrollTo({ 
-        top: document.documentElement.scrollHeight, 
-        behavior: 'auto'
-        /* you can also use 'auto' behaviour 
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      behavior: 'auto',
+      /* you can also use 'auto' behaviour
            in place of 'smooth' */
-      }); 
-
+    });
   }
 
   useEffect(() => {
@@ -123,24 +121,6 @@ function compiler() {
   };
 
   const getGrammerResult = function () {
-    let url = 'http://localhost:8080/grammer';
-    /** 获取结果的值 */
-    fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        source: input,
-      }),
-    })
-      .then((res) => res.text())
-      .then((data) => {
-        setOutput(data);
-        console.log(data);
-      })
-      .catch((e) => console.log(e));
-
     /**获取语法树 */
     fetch('http://localhost:8080/grammerTree', {
       method: 'POST',
@@ -154,10 +134,10 @@ function compiler() {
       .then((res) => res.json())
       .then((data) => {
         console.log('grammertree', data);
+        setOutput("请查看下方语法树")
         setTreeData(data);
       })
       .catch((e) => console.log(e));
-
     const container = document.getElementById('container');
     const width = container.scrollWidth;
     const height = container.scrollHeight || 500;
@@ -359,9 +339,49 @@ function compiler() {
       .catch((e) => console.log(e));
   };
 
+  const getIntermediateCode = function () {
+    let url = 'http://localhost:8080/intermediateCode';
+    console.log(input);
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        source: input,
+      }),
+    })
+      .then((res) => res.text())
+      .then((data) => {
+        // outputText.current!.editor.setValue(data);
+        setOutput(data);
+      })
+      .catch((e) => console.log(e));
+  }
+
+
+  const getSemanticResult = function () {
+    let url = 'http://localhost:8080/semanticResult';
+    console.log(input);
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        source: input,
+      }),
+    })
+      .then((res) => res.text())
+      .then((data) => {
+        // outputText.current!.editor.setValue(data);
+        setOutput(data);
+      })
+      .catch((e) => console.log(e));
+  };
   return (
-    <div >
-      <div >
+    <div>
+      <div>
         <Menu
           triggerSubMenuAction="click"
           style={{ background: 'f8f8f8', fontSize: 13 }}
@@ -424,7 +444,7 @@ function compiler() {
           <SubMenu title="编译">
             <Menu.Item onClick={runCompiler}>词法分析</Menu.Item>
             <Menu.Item onClick={getGrammerResult}>语法分析</Menu.Item>
-            <Menu.Item>语义分析</Menu.Item>
+            <Menu.Item onClick={getSemanticResult}>语义分析</Menu.Item>
           </SubMenu>
           <SubMenu title="中间过程">
             <Menu.Item
@@ -448,6 +468,14 @@ function compiler() {
               }}
             >
               解析表
+            </Menu.Item>
+            <Menu.Item
+              onClick={() => {
+                getIntermediateCode();
+                setcodeVisible(true);
+              }}
+            >
+              中间代码
             </Menu.Item>
           </SubMenu>
         </Menu>
